@@ -1,6 +1,6 @@
 import javax.sound.midi.*;
 
-class RandomMusicVideo{
+class RandomMusicVideo implements ControllerEventListener{
 
 	public static void main(String[] args){
 			RandomMusicVideo video = new RandomMusicVideo();
@@ -9,19 +9,25 @@ class RandomMusicVideo{
 
 	public void play(){
 		try{
-			Sequencer player = MidiSystem.getSequencer();
-			player.open();
+			Sequencer sequencer = MidiSystem.getSequencer();
+			sequencer.open();
+
+			int[] eventsIWant={127};
+			sequencer.addControllerEventListener(this, eventsIWant);
+
 			Sequence seq =new Sequence(Sequence.PPQ, 4);
 			Track track = seq.createTrack();
 
 			//first.setMessage(ShortMessage.PROGRAM_CHANGE,1,instrument,0);
 
 			for(int i=5;i<61;i+=4){
-				System.out.println("Looping");
-				track.add(makeEvent(144,1,i,100,i));
-				track.add(makeEvent(128,1,i,100,i+2));
+				track.add(makeEvent(144,1,i,100,i));	//144=SHORTMESSAGE.NOTE_ON
+				track.add(makeEvent(176,1,127,0,i));	//176=SHORTMESSAGE.CONTROLLER_EVENT
+				//By listening for this event we can trigger things in time to the music.
+				track.add(makeEvent(128,1,i,100,i+2));	//128=SHORTMESSAGE.NOTE_OFF
 			}
 
+			//This is how we can manually enter a note. Useful for debugging.
 			/*ShortMessage a = new ShortMessage();
 			a.setMessage(144,1,44,100);
 			MidiEvent noteOn = new MidiEvent(a,1);
@@ -31,10 +37,10 @@ class RandomMusicVideo{
 			b.setMessage(128,1,44,100);
 			MidiEvent noteOff = new MidiEvent(b,16);
 			track.add(noteOff);*/
-
-			player.setSequence(seq);
-			player.setTempoInBPM(220);
-			player.start();
+			
+			sequencer.setSequence(seq);
+			sequencer.setTempoInBPM(220);
+			sequencer.start();
 		}catch(MidiUnavailableException e){
 			System.out.println("Oops no sequencer.");
 			e.printStackTrace();
@@ -44,6 +50,10 @@ class RandomMusicVideo{
 		}
 		
 	}	
+
+	public void controlChange(ShortMessage event){
+		System.out.println("la");	//Should print la in time to the beat.
+	}
 
 	public static MidiEvent makeEvent(int comd, int chan, int one, int two, int tick){
 		MidiEvent event = null;
@@ -55,12 +65,6 @@ class RandomMusicVideo{
 		}catch(Exception e){
 			System.out.println("Problem");
 		}
-
-		/*try{
-		ShortMessage a = new ShortMessage();
-		a.setMessage(144,1,44,100);
-		event = new MidiEvent(a,1);
-		}catch(Exception e){}*/
 		
 		return event;
 	}
