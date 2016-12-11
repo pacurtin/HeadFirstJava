@@ -1,9 +1,9 @@
+package com.headfirstpaddy;
+
 import java.util.*;
 import java.util.ArrayList;
 
 class Dog extends Animal{
-
-	String name;
 	
 	void bark() {
 		System.out.println("Bark! My name is "+name);
@@ -20,6 +20,7 @@ class Dog extends Animal{
 
 		ArrayList<Dog> dogs = new ArrayList<Dog>();
 		rex.bark();
+		rex.sleep();
 	}
 
 }
